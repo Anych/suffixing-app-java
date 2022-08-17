@@ -34,17 +34,20 @@ public class AddSuffix {
         return null;
     }
 
-    public static void getFilesProperties(Properties prop) {
+    public static void getFilesProperties (Properties prop) throws NullPointerException{
         mode = prop.getProperty("mode");
         recognizeMode(mode);
         suffix = prop.getProperty("suffix");
-        files = prop.getProperty("files").split(":");
+        try {
+            files = prop.getProperty("files").split(":");
+        } catch (NullPointerException e) {
+            logger.log(Level.WARNING, "No files are configured to be copied/moved");
+        }
     }
 
     public static void recognizeMode(String mode) {
         if (!mode.toLowerCase().equals("copy") && !mode.toLowerCase().equals("move")) {
             logger.log(Level.SEVERE, "Mode is not recognized: " + mode);
-            System.exit(0);
         }
     }
 
