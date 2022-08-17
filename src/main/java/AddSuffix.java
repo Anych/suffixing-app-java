@@ -60,9 +60,13 @@ public class AddSuffix {
     public static void getFilesPath() {
         try {
             filesArray = prop.getProperty("files").split(":");
-            for (String filePath: filesArray) {
-                currentFilePath = filePath;
-                changeFile();
+            for (String filePath : filesArray) {
+                if (!filePath.isEmpty()) {
+                    currentFilePath = filePath;
+                    changeFile();
+                } else {
+                    throw new NullPointerException();
+                }
             }
         } catch (NullPointerException e) {
             logger.log(Level.WARNING, "No files are configured to be copied/moved");
@@ -114,7 +118,11 @@ public class AddSuffix {
         logger.log(Level.INFO, currentFilePath + " -> " + endFilePath);
     }
 
-    public static void moveFile() {
-
+    public static void moveFile() throws IOException {
+        File src = new File(currentFilePath);
+        File dest = new File(endFilePath);
+        Files.copy(src.toPath(), dest.toPath());
+        logger.log(Level.INFO, currentFilePath + " => " + endFilePath);
+        Files.delete(Paths.get(currentFilePath));
     }
 }
