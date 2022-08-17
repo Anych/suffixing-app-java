@@ -15,6 +15,7 @@ public class AddSuffix {
     static Properties prop = null;
     static String currentFilePath;
     static String endFilePath;
+    static String[] filesArray;
 
     public static void main(String[] args) {
         configPath = Paths.get(args[0]);
@@ -58,7 +59,7 @@ public class AddSuffix {
 
     public static void getFilesPath() {
         try {
-            String[] filesArray = prop.getProperty("files").split(":");
+            filesArray = prop.getProperty("files").split(":");
             for (String filePath: filesArray) {
                 currentFilePath = filePath;
                 changeFile();
@@ -71,21 +72,26 @@ public class AddSuffix {
     }
 
     public static void changeFile() throws IOException {
-        checkFileExists();
-        getEndFilePath();
-        if (mode.toLowerCase().equals("copy")) {
-            copyFile();
-        } else {
-            moveFile();
+        boolean exists = checkFileExists();
+        if (exists) {
+            getEndFilePath();
+            if (mode.toLowerCase().equals("copy")) {
+                copyFile();
+            } else {
+                moveFile();
+            }
         }
     }
 
-    public static void checkFileExists() {
+    public static boolean checkFileExists() {
         File f = new File(currentFilePath);
         if (!f.exists()) {
             String filePath = f.toString();
             String filePathWithForwardSlashes = filePath.replace("\\", "/");
             logger.log(Level.SEVERE, "No such file: " + filePathWithForwardSlashes);
+            return false;
+        } else {
+            return true;
         }
     }
 
