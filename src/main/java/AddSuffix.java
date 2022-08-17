@@ -1,10 +1,8 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Files;
 
 import java.util.Properties;
 import java.util.logging.*;
@@ -16,6 +14,7 @@ public class AddSuffix {
     static String suffix;
     static Properties prop = null;
     static String currentFilePath;
+    static String endFilePath;
 
     public static void main(String[] args) {
         configPath = Paths.get(args[0]);
@@ -40,7 +39,7 @@ public class AddSuffix {
     public static void getFileProperties() throws NullPointerException{
         getMode();
         getSuffix();
-        getFilesNames();
+        getFilesPath();
     }
 
     public static void getMode() {
@@ -57,7 +56,7 @@ public class AddSuffix {
         }
     }
 
-    public static void getFilesNames() {
+    public static void getFilesPath() {
         try {
             String[] filesArray = prop.getProperty("files").split(":");
             for (String filePath: filesArray) {
@@ -66,11 +65,19 @@ public class AddSuffix {
             }
         } catch (NullPointerException e) {
             logger.log(Level.WARNING, "No files are configured to be copied/moved");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static void changeFile() {
+    public static void changeFile() throws IOException {
         checkFileExists();
+        getEndFilePath();
+        if (mode.toLowerCase().equals("copy")) {
+            copyFile();
+        } else {
+            moveFile();
+        }
     }
 
     public static void checkFileExists() {
@@ -80,5 +87,28 @@ public class AddSuffix {
             String filePathWithForwardSlashes = filePath.replace("\\", "/");
             logger.log(Level.SEVERE, "No such file: " + filePathWithForwardSlashes);
         }
+    }
+
+    public static void getEndFilePath() {
+        String[] pathArray = currentFilePath.split("/");
+        String currentFileName = pathArray[pathArray.length - 1];
+
+        String[] fileNameArray = currentFileName.split("\\.");
+        String fileExtension = fileNameArray[fileNameArray.length - 1];
+
+        String newFileName = fileNameArray[0] + suffix + "." + fileExtension;
+        pathArray[pathArray.length - 1] = newFileName;
+
+        endFilePath = String.join("/", pathArray);
+    }
+    public static void copyFile() throws IOException {
+        File src = new File(currentFilePath);
+        File dest = new File(endFilePath);
+        Files.copy(src.toPath(), dest.toPath());
+        logger.log(Level.INFO, currentFilePath + " -> " + endFilePath);
+    }
+
+    public static void moveFile() {
+
     }
 }
