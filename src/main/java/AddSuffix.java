@@ -1,7 +1,6 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.*;
 
@@ -11,44 +10,52 @@ public class AddSuffix {
     static String mode;
     static String suffix;
     static String[] files;
+    static Properties prop = null;
 
     public static void main(String[] args) {
         configPath = args[0];
 
-        Properties properties = readFile();
-        if (properties != null) {
-            getFilesProperties(properties);
+        readFile();
+        if (prop != null) {
+            getFileProperties();
         }
     }
 
-    public static Properties readFile() {
+    public static void readFile() {
         try (InputStream input = new FileInputStream(configPath)) {
-
-            Properties prop = new Properties();
+            prop = new Properties();
             prop.load(input);
-            return prop;
 
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return null;
     }
 
-    public static void getFilesProperties (Properties prop) throws NullPointerException{
+    public static void getFileProperties() throws NullPointerException{
+        getMode();
+        getSuffix();
+        getFilesPaths();
+    }
+
+    public static void getMode() {
         mode = prop.getProperty("mode");
-        recognizeMode(mode);
+        if (!mode.toLowerCase().equals("copy") && !mode.toLowerCase().equals("move")) {
+            logger.log(Level.SEVERE, "Mode is not recognized: " + mode);
+        }
+    }
+
+    public static void getSuffix() {
         suffix = prop.getProperty("suffix");
+        if (suffix == null) {
+            logger.log(Level.SEVERE, "No suffix is configured");
+        }
+    }
+
+    public static void getFilesPaths() {
         try {
             files = prop.getProperty("files").split(":");
         } catch (NullPointerException e) {
             logger.log(Level.WARNING, "No files are configured to be copied/moved");
         }
     }
-
-    public static void recognizeMode(String mode) {
-        if (!mode.toLowerCase().equals("copy") && !mode.toLowerCase().equals("move")) {
-            logger.log(Level.SEVERE, "Mode is not recognized: " + mode);
-        }
-    }
-
 }
